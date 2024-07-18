@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Video Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin: 20px 0;
+        }
+        input[type="file"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .results img {
+            max-width: 100%;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Video Upload</h1>
+        <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="video" required>
+            <button type="submit">Upload</button>
+        </form>
+
+        <h1>Search in Video</h1>
+        <form id="search-form" action="/search" method="post">
+            <input type="hidden" id="video-path" name="video_path">
+            <input type="text" name="query" placeholder="Search for an object" required>
+            <button type="submit">Search</button>
+        </form>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        document.querySelector('#upload-form').onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const videoPath = await response.text();
+            document.querySelector('#video-path').value = videoPath;
+            alert('Video uploaded successfully!');
+        };
+
+        document.querySelector('#search-form').onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch('/search', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            const resultsDiv = document.querySelector('#results');
+            resultsDiv.innerHTML = '';
+
+            if (response.ok) {
+                result.matching_frames.forEach(frame => {
+                    const img = document.createElement('img');
+                    img.src = frame;
+                    resultsDiv.appendChild(img);
+                });
+            } else {
+                resultsDiv.innerHTML = `<p>${result.error}</p>`;
+            }
+        };
+    </script>
+</body>
+</html>
